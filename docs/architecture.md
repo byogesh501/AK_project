@@ -2,8 +2,8 @@
 
 ## Guiding Principles
 
-1. **No pretrained models or weights.** Every model is defined and trained from scratch. (Enforced by automated guard tests in `tests/test_policy.py`).
-2. **Platform / Domain separation.** Reusable AI logic lives in `platform/`; product-specific logic lives in `domains/<name>/`.
+1. **No pretrained models/weights.** Every model is defined and trained from scratch. (Enforced by automated guard tests).
+2. **Platform / Domain separation.** Reusable AI logic lives in `core/`; product-specific logic lives in `domains/<name>/`.
 3. **Human-in-the-loop by design.** Every prediction can be reviewed, corrected, and fed back into training.
 4. **Minimal dependencies.** Only add what the current phase needs.
 
@@ -69,7 +69,7 @@ The first domain pack is `domains/pcb/` (PCB / electronics inspection).
 
 To prevent accidental deviation from project requirements, a strict safeguard runs as part of the test suite (`tests/test_policy.py`). 
 
-The test automatically scans all files in `core/` and `domains/` for disallowed keywords that attempt to download or load externally pretrained weights:
+The test automatically scans **every `.py` file in the project root** (excluding `tests/`, `__pycache__/`, `.venv/`, `data/`, and other caches) for disallowed keywords that attempt to download or load externally pretrained weights:
 - `weights=`
 - `pretrained=`
 - `.from_pretrained(`

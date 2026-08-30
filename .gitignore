@@ -31,3 +31,8 @@ logs/*.log
 .vscode/
 .idea/
 *.swp
+
+# Claude Code
+.claude/settings.local.json
+.claude/tasks/
+.claude/output/

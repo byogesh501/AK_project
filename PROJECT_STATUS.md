@@ -81,11 +81,12 @@ All models are trained from scratch — no pretrained weights.
 - `tests/domains/test_pcb.py` — parametrized import test for all PCB submodules
 - `tests/api/test_main.py` — tests `/health` endpoint (status, body, version)
 - `tests/core/test_utils.py` — skipped placeholder (awaiting Phase 1)
-- `tests/conftest.py` — adds project root to sys.path for test imports
+- `tests/conftest.py` — appends project root to sys.path (end, to avoid shadowing stdlib)
 
 **Repository Safeguards:**
 - `.gitattributes` — forces consistent `LF` line endings for `*.py`, `*.yaml`, `*.md`, etc.
-- `tests/test_policy.py` — automated project guard strictly asserting that `core/` and `domains/` code contains no forbidden terms associated with pretrained models (`weights=`, `pretrained=`, `.from_pretrained(`, `torch.hub.load(`). Legitimate non-model uses can opt-out per line via `# noqa: allow-pretrained`.
+- `tests/test_policy.py` — automated project guard scanning **all project `.py` files** (excluding `tests/`, `__pycache__/`, `.venv/`, `data/`, and other caches) for forbidden pretrained-weight patterns (`weights=`, `pretrained=`, `.from_pretrained(`, `torch.hub.load(`). Legitimate non-model uses can opt-out per line via `# noqa: allow-pretrained`.
+- `.gitignore` — excludes `.claude/settings.local.json` and other Claude-generated files.
 
 **Documentation:**
 - `docs/architecture.md` — platform vs domain packs, module responsibilities,
