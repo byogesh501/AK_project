@@ -2,8 +2,8 @@
 Base interface for model architectures.
 
 Project policy: ALL models are trained from scratch.
-Do NOT use pretrained weights (e.g. models with pretrained=True,
-weights=..., or downloaded checkpoint files).
+Do NOT use pretrained weights (e.g. models with pretrained=True, # noqa: allow-pretrained
+weights=..., or downloaded checkpoint files). # noqa: allow-pretrained
 """
 
 from abc import ABC, abstractmethod

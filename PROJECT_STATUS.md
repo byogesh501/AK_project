@@ -83,6 +83,10 @@ All models are trained from scratch — no pretrained weights.
 - `tests/core/test_utils.py` — skipped placeholder (awaiting Phase 1)
 - `tests/conftest.py` — adds project root to sys.path for test imports
 
+**Repository Safeguards:**
+- `.gitattributes` — forces consistent `LF` line endings for `*.py`, `*.yaml`, `*.md`, etc.
+- `tests/test_policy.py` — automated project guard strictly asserting that `core/` and `domains/` code contains no forbidden terms associated with pretrained models (`weights=`, `pretrained=`, `.from_pretrained(`, `torch.hub.load(`). Legitimate non-model uses can opt-out per line via `# noqa: allow-pretrained`.
+
 **Documentation:**
 - `docs/architecture.md` — platform vs domain packs, module responsibilities,
   HITL/feedback flow diagram, how to add a new domain
