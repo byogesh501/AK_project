@@ -1,155 +1,112 @@
 # AK Visual Intelligence Platform — Project Status
 
-## Vision
-
-An AI-powered visual inspection platform for manufacturing quality control.
-The system detects defects, scores risk, and provides explainable results
-across multiple product domains. **PCB/electronics** is the first domain.
-
-All models are trained from scratch — no pretrained weights.
-
----
-
-## Phase 0: Project Scaffolding ✅ (Completed 2026-08-30)
-
-### What was created
-
-**Platform core (`core/`)** — domain-agnostic modules:
-- `preprocessing/` — image loading, augmentation, transforms
-- `models/` — base model architectures and training utilities
-- `anomaly/` — anomaly detection algorithms
-- `risk/` — risk scoring and confidence calibration
-- `explainability/` — visual explanation utilities (Grad-CAM, saliency)
-- `utils/` — shared helpers (logging, metrics, I/O)
-
-**PCB domain (`domains/pcb/`)** — first domain implementation:
-- `preprocessing/` — PCB-specific image processing
-- `models/` — PCB defect detection models
-- `anomaly/` — PCB anomaly detection
-- `risk/` — PCB risk profiles
-- `explainability/` — PCB-specific explanations
-- `config/` — PCB constants and settings
-
-**API (`api/`)** — FastAPI REST endpoint scaffolding
-
-**Dashboard (`dashboard/`)** — Streamlit dashboard scaffolding
-
-**Data (`data/`)** — `raw/` (gitignored), `processed/`, `samples/`
-
-**Tests (`tests/`)** — mirrors source structure with placeholder tests
-
-**Configuration (`config/default.yaml`)** — project-wide settings
-
-**Root files:**
-- `requirements.txt` — minimal dependencies
-- `setup.py` — package metadata
-- `README.md` — project overview and quick start
-- `.gitignore` — updated for Python/AI project
-
-### Design decisions
-- `core/` holds reusable code; `domains/` holds product-specific code
-- New domains are added as sibling packages under `domains/` (e.g., `domains/textiles/`)
-- No pretrained models or weights — everything built from scratch
-- Minimal dependencies — only what's needed at each phase
+## Overview & Current State
+- **Vision:** Multi-domain AI-powered visual inspection platform for manufacturing quality control (starting with PCB/electronics).
+- **Core Policy:** All inspection models trained from scratch — zero pretrained weights.
+- **Current Phase:** Phase 0 & Phase 0.5 completed (Phase 1 pending start).
+- **Latest Git Commit:** `f56f9ae63616b769dac3087a7a9d7a581fc39b0f` — `fix: Phase 0.5 final cleanup — widen policy guard, fix stale references`
+- **Latest Test Suite Result:** 24 passed, 1 skipped (0 failed) across 5 test suites.
+- **Next Step:** Phase 1 — Data Pipeline & Preprocessing (download and verify DeepPCB dataset, dataset loaders, preprocessing pipeline).
 
 ---
 
-## Phase 0.5: Architectural Fixes ✅ (Completed 2026-08-30)
+## Phase 0: Project Scaffolding ✅ (Completed)
 
-### What was added/changed
-
-**Human-in-the-loop review (`core/review/`):**
-- `base.py` — `VerdictStatus`, `Verdict`, `FeedbackRecord` data classes;
-  `BaseReviewStore` and `BaseReviewPolicy` ABCs for verdict persistence
-  and review routing
-
-**Base interfaces/contracts added:**
-- `core/preprocessing/base.py` — `BasePreprocessor` ABC
-- `core/models/base.py` — `BaseModel` and `BaseTrainer` ABCs
-- `core/anomaly/base.py` — `BaseAnomalyDetector` ABC, `AnomalyResult` dataclass
-- `core/risk/base.py` — `BaseRiskScorer` ABC, `RiskAssessment` dataclass
-- `core/explainability/base.py` — `BaseExplainer` ABC, `Explanation` dataclass
-
-**API fixed:**
-- `api/main.py` — minimal FastAPI app with `/health` endpoint (runnable)
-
-**Tests replaced:**
-- Removed `assert True` placeholder tests
-- `tests/core/test_base_interfaces.py` — verifies all ABCs reject direct
-  instantiation; tests data class construction for `Verdict`, `AnomalyResult`,
-  `RiskAssessment`, `FeedbackRecord`
-- `tests/domains/test_pcb.py` — parametrized import test for all PCB submodules
-- `tests/api/test_main.py` — tests `/health` endpoint (status, body, version)
-- `tests/core/test_utils.py` — skipped placeholder (awaiting Phase 1)
-- `tests/conftest.py` — appends project root to sys.path (end, to avoid shadowing stdlib)
-
-**Repository Safeguards:**
-- `.gitattributes` — forces consistent `LF` line endings for `*.py`, `*.yaml`, `*.md`, etc.
-- `tests/test_policy.py` — automated project guard scanning **all project `.py` files** (excluding `tests/`, `__pycache__/`, `.venv/`, `data/`, and other caches) for forbidden pretrained-weight patterns (`weights=`, `pretrained=`, `.from_pretrained(`, `torch.hub.load(`). Legitimate non-model uses can opt-out per line via `# noqa: allow-pretrained`.
-- `.gitignore` — excludes `.claude/settings.local.json` and other Claude-generated files.
-
-**Documentation:**
-- `docs/architecture.md` — platform vs domain packs, module responsibilities,
-  HITL/feedback flow diagram, how to add a new domain
-
-**Configuration:**
-- `config/default.yaml` — added `review` section (auto_review_threshold, random_audit_rate)
-
-**Policy:**
-- Explicit "no pretrained models/weights" policy in `core/__init__.py`,
-  `core/models/__init__.py`, `requirements.txt`, and `docs/architecture.md`
-- `torchvision` retained for transforms/utilities only (noted in requirements.txt)
-- Added `httpx` dependency (required by FastAPI TestClient)
+### Implemented & Verified Architecture
+- **Platform Core (`core/`)**: Domain-agnostic modular foundation:
+  - `preprocessing/` — image transformation and augmentation interfaces
+  - `models/` — model architectures and training utilities
+  - `anomaly/` — unsupervised anomaly detection algorithms
+  - `risk/` — defect risk assessment and scoring
+  - `explainability/` — visual inspection explanations (Grad-CAM, saliency)
+  - `review/` — human-in-the-loop (HITL) review and feedback collection
+  - `utils/` — common utilities (logging, metrics, I/O)
+- **Domain Pack (`domains/pcb/`)**: First product domain implementation:
+  - `preprocessing/`, `models/`, `anomaly/`, `risk/`, `explainability/`, `config/` submodules with standard interfaces.
+- **API (`api/`)**: FastAPI application structure with `/health` endpoint.
+- **Dashboard (`dashboard/`)**: Streamlit inspection dashboard scaffolding.
+- **Data (`data/`)**: Partitioned into `raw/` (gitignored), `processed/`, and `samples/`.
+- **Packaging & Setup**: `setup.py`, `requirements.txt`, `README.md`, `config/default.yaml`.
 
 ---
 
-## Phase 1: Data Pipeline & Preprocessing (Next)
+## Phase 0.5: Architectural Fixes & Safeguards ✅ (Completed)
 
-- [ ] Implement config loader (`core/utils/`)
-- [ ] Build image loading utilities (`core/preprocessing/`)
-- [ ] Add PCB-specific preprocessing (`domains/pcb/preprocessing/`)
-- [ ] Create sample data loader for development
-- [ ] Add data augmentation transforms
-- [ ] Write tests for preprocessing pipeline
+### Implemented & Verified Components
 
-## Phase 2: Model Architecture
+1. **Human-in-the-Loop (HITL) Review Foundation (`core/review/`):**
+   - `__init__.py`: Domain-agnostic module exposing `VerdictStatus`, `Verdict`, and `FeedbackRecord`.
+   - `base.py`: `VerdictStatus` enum (`ACCEPTED`, `REJECTED`, `CORRECTED`, `NEEDS_REVIEW`), `Verdict` and `FeedbackRecord` dataclasses.
+   - `BaseReviewStore` and `BaseReviewPolicy` abstract base classes for verdict persistence and review routing decisions.
 
-- [ ] Define concrete model classes (`core/models/`)
-- [ ] Build PCB defect detection model from scratch (`domains/pcb/models/`)
-- [ ] Implement training loop and evaluation
-- [ ] Add model checkpointing and versioning
+2. **Core Abstract Interfaces & Contracts:**
+   - `core/preprocessing/base.py`: `BasePreprocessor` ABC (defines `load_image`, `preprocess`, `augment`).
+   - `core/models/base.py`: `BaseModel` and `BaseTrainer` ABCs (for architecture and training loop contracts).
+   - `core/anomaly/base.py`: `BaseAnomalyDetector` ABC and `AnomalyResult` dataclass (for anomaly scoring/classification).
+   - `core/risk/base.py`: `BaseRiskScorer` ABC and `RiskAssessment` dataclass (for risk severity scoring).
+   - `core/explainability/base.py`: `BaseExplainer` ABC and `Explanation` dataclass (for Grad-CAM/saliency interfaces).
+   - `core/utils/__init__.py`: Shared utilities package (config loader to be implemented in Phase 1).
 
-## Phase 3: Anomaly Detection & Risk Scoring
+3. **Runnable FastAPI `/health` Endpoint (`api/main.py`):**
+   - Implemented `/health` returning service status, timestamp, and version `0.1.0`.
+   - Added `httpx` dependency for test client support.
 
-- [ ] Implement anomaly detection algorithms (`core/anomaly/`)
-- [ ] Add PCB-specific anomaly detection (`domains/pcb/anomaly/`)
-- [ ] Build risk scoring pipeline (`core/risk/`)
-- [ ] Add confidence calibration
+4. **Test Suite Improvements & Validation:**
+   - Removed placeholder `assert True` tests from Phase 0.
+   - `tests/core/test_base_interfaces.py`: Validates abstract base classes reject direct instantiation and dataclass contracts construct correctly.
+   - `tests/domains/test_pcb.py`: Parametrized import and structure checks across all PCB domain submodules.
+   - `tests/api/test_main.py`: HTTP-level tests for `/health` endpoint (response 200, body schema, version field).
+   - `tests/core/test_utils.py`: Skipped placeholder with explicit skip reason (awaiting Phase 1 implementation).
+   - `tests/test_policy.py`: Automated guard that scans all `.py` files in `core/`, `domains/`, `api/`, and `dashboard/` for forbidden pretrained-weight patterns.
+   - `tests/conftest.py`: Ensures project root is available on `sys.path` for import resolution.
 
-## Phase 4: Explainability
+5. **Pretrained-Weight Policy & Automated Enforcement:**
+   - **Policy:** All inspection models must be trained from scratch. External pretrained weights (e.g., ImageNet, transformers checkpoints) are strictly prohibited.
+   - **Enforcement:** `tests/test_policy.py` is an automated guard that scans all project Python source files under `core/`, `domains/`, `api/`, and `dashboard/` for forbidden patterns: `weights=`, `pretrained=`, `.from_pretrained(`, and `torch.hub.load(`.
+   - **Bypass mechanism:** Legitimate non-model uses (e.g., describing what is forbidden in a docstring) may opt out on a per-line basis using `# noqa: allow-pretrained`.
+   - **Verification:** Guard was confirmed to fail on a temporary test file containing `torch.hub.load()`, then pass after removal. Guard is integrated into CI-equivalent pytest runs.
 
-- [ ] Implement Grad-CAM and saliency maps (`core/explainability/`)
-- [ ] Add PCB-specific visual explanations (`domains/pcb/explainability/`)
-- [ ] Generate human-readable inspection reports
+6. **Repository Hygiene & Safeguards:**
+   - `.gitattributes`: Line-ending normalization (LF) across all source, config, and markdown files. Explicit binary tags for model weight formats (`*.pt`, `*.pth`, `*.onnx`) and image formats (`*.png`, `*.jpg`, `*.jpeg`).
+   - `.gitignore`: Comprehensive coverage of Python caches (`__pycache__`), virtual environments (`.venv`, `venv`), raw datasets (`data/raw/`), model binaries, IDE configs (`.vscode/`, `.idea/`), and Claude Code local session artifacts (`.claude/settings.local.json`, `.claude/tasks/`, `.claude/output/`).
 
-## Phase 5: Human-in-the-Loop & Feedback
+7. **Architecture Documentation (`docs/architecture.md`):**
+   - Documents project guiding principles, layer diagram, and module responsibilities.
+   - Describes platform core vs domain-specific pack separation.
+   - Outlines the HITL review and feedback flow with a diagram.
+   - Provides a step-by-step onboarding guide for future product domains.
 
-- [ ] Implement file/DB-backed `ReviewStore` (`core/review/`)
-- [ ] Build review routing policy (confidence-based + random audit)
-- [ ] Add review UI to dashboard
-- [ ] Create feedback export for retraining pipeline
-- [ ] Track correction statistics and model drift indicators
+---
 
-## Phase 6: API & Dashboard
+## Roadmap & Upcoming Phases
 
-- [ ] Build FastAPI inference endpoints (`api/`)
-- [ ] Create Streamlit dashboard (`dashboard/`)
-- [ ] Add real-time inspection views
-- [ ] Integrate HITL review UI
-- [ ] Integrate all pipeline stages end-to-end
+### Phase 1: Data Pipeline & Preprocessing (Planned / Not Started)
+- **Status:** Not yet started. No dataset downloaded, no preprocessing code implemented.
+- **Next Immediate Actions (to begin):**
+  - Download and verify DeepPCB dataset (1,500 image pairs across 6 defect classes: Open, Short, Mouse bite, Spur, Spurious copper, Pin hole).
+  - Verify DeepPCB license terms (MIT-style, research use) before any data handling.
+  - Implement annotation converter to normalized YOLO bounding box format.
+  - Create train/val/test splits with golden template reference pairs (80/10/10 split).
+  - Implement concrete dataset loaders and augmentation pipelines in `core/preprocessing/` and `domains/pcb/preprocessing/`.
+  - Write test coverage for preprocessing pipeline.
 
-## Phase 7: Multi-Domain Expansion
+### Phase 2: Model Architecture (Planned)
+- Custom CNN / defect detection architectures trained from scratch.
+- Training loop, loss functions, checkpointing, and evaluation metrics.
 
-- [ ] Extract domain registration pattern
-- [ ] Add second product domain as proof of extensibility
-- [ ] Document domain onboarding process
+### Phase 3: Anomaly Detection & Risk Scoring (Planned)
+- Unsupervised anomaly detection for unseen defect classes.
+- Multi-factor risk scoring and confidence calibration.
+
+### Phase 4: Explainability (Planned)
+- Saliency maps, Grad-CAM, and inspection report generator.
+
+### Phase 5: Human-in-the-Loop & Feedback Pipeline (Planned)
+- Concrete `ReviewStore` and confidence-based routing policies.
+- Feedback export for model retraining and drift tracking.
+
+### Phase 6: API & Dashboard Integration (Planned)
+- Full REST endpoints in FastAPI and interactive Streamlit UI.
+
+### Phase 7: Multi-Domain Expansion (Planned)
+- Multi-domain registration framework and second domain demonstration.
