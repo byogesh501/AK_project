@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+node_modules/
+dist/
+build/
+*.pt
+*.pth
+*.onnx
+datasets/
+data/raw/
