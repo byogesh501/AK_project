@@ -1,13 +1,33 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
 .venv/
 venv/
+
+# Environment
 .env
+
+# Frontend / Node
 node_modules/
 dist/
 build/
+
+# Model weights (never commit)
 *.pt
 *.pth
 *.onnx
+*.h5
+
+# Data (raw data is large / private)
 datasets/
 data/raw/
+
+# Logs
+logs/*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp

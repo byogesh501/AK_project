@@ -1,0 +1,38 @@
+# ──────────────────────────────────────────────────────────
+# AK Visual Intelligence Platform — Default Configuration
+# ──────────────────────────────────────────────────────────
+
+project:
+  name: "AK Visual Intelligence Platform"
+  version: "0.1.0"
+
+# Active domain (switch to inspect a different product type)
+domain: "pcb"
+
+# Data paths (relative to project root)
+data:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  samples_dir: "data/samples"
+
+# Training defaults (placeholder — no training yet)
+training:
+  batch_size: 16
+  learning_rate: 0.001
+  epochs: 50
+  device: "auto"          # "auto" | "cpu" | "cuda"
+
+# API settings
+api:
+  host: "0.0.0.0"
+  port: 8000
+
+# Dashboard settings
+dashboard:
+  host: "0.0.0.0"
+  port: 8501
+
+# Logging
+logging:
+  level: "INFO"
+  log_dir: "logs"
