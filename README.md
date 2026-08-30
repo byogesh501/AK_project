@@ -21,7 +21,7 @@ The AK Visual Intelligence Platform provides AI-powered visual inspection for ma
 ## Project Structure
 
 ```
-platform/          Core AI components (domain-agnostic)
+core/          Core AI components (domain-agnostic)
 domains/pcb/       PCB-specific inspection logic
 api/               FastAPI REST API
 dashboard/         Streamlit dashboard

@@ -22,6 +22,11 @@ training:
   epochs: 50
   device: "auto"          # "auto" | "cpu" | "cuda"
 
+# Human-in-the-loop review
+review:
+  auto_review_threshold: 0.7   # Predictions below this confidence go to human review
+  random_audit_rate: 0.05      # 5% of all predictions sampled for audit
+
 # API settings
 api:
   host: "0.0.0.0"

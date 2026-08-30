@@ -4,31 +4,22 @@
 # A multi-domain visual inspection and anomaly detection system.
 # PCB/electronics inspection is the first supported domain.
 #
-# Project structure:
-#   platform/     — Domain-agnostic core (preprocessing, models, anomaly, risk, explainability)
-#   domains/      — Domain-specific code (domains/pcb/ for PCB inspection)
-#   api/          — REST API (FastAPI)
-#   dashboard/    — Interactive dashboard (Streamlit)
-#   config/       — Configuration files
-#   data/         — Datasets (raw data is gitignored)
-#   tests/        — Test suite (mirrors source layout)
-#   docs/         — Documentation
-#   scripts/      — Utility scripts
+# PROJECT POLICY: No pretrained models or pretrained weights.
+# Every model architecture is defined and trained from scratch.
 #
 # Quick start:
 #   1. python -m venv .venv
 #   2. .venv\Scripts\activate        (Windows)
 #      source .venv/bin/activate     (Linux/macOS)
 #   3. pip install -r requirements.txt
-#   4. pytest                        (run placeholder tests)
+#   4. pytest                        (run tests)
 #
-# Status: Project scaffolding only — no models or features implemented yet.
 # See PROJECT_STATUS.md for the roadmap.
 
 # ── Minimal dependencies ──────────────────────────────────
 # Core
 torch>=2.0
-torchvision>=0.15
+torchvision>=0.15    # Used for transforms/utilities only — NOT for pretrained models
 numpy>=1.24
 Pillow>=9.0
 
@@ -38,6 +29,7 @@ PyYAML>=6.0
 # API
 fastapi>=0.100
 uvicorn>=0.22
+httpx>=0.24          # Required by FastAPI TestClient
 
 # Dashboard
 streamlit>=1.24
