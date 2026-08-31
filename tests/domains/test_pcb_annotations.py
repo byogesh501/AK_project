@@ -1,16 +1,10 @@
 import pytest
 from domains.pcb.preprocessing.annotation import parse_deeppcb_annotation
 
-def test_parse_deeppcb_annotation_valid():
+def test_parse_deeppcb_annotation_valid_comma():
     """
-    Test parsing a typical DeepPCB annotation line:
-    x1,y1,x2,y2,type -> class_id, x_center, y_center, width, height
-    type is 1-6, class_id should be 0-5.
+    Test parsing a documented DeepPCB annotation line (comma separated).
     """
-    # Example: x1=100, y1=150, x2=200, y2=250, type=3 (mouse_bite)
-    # class_id = 3 - 1 = 2
-    # width = 100/640 = 0.15625, height = 100/640 = 0.15625
-    # x_center = 150/640 = 0.234375, y_center = 200/640 = 0.3125
     line = "100,150,200,250,3"
     class_id, x_c, y_c, w, h = parse_deeppcb_annotation(line, img_width=640, img_height=640)
 
@@ -20,15 +14,25 @@ def test_parse_deeppcb_annotation_valid():
     assert w == 100 / 640.0
     assert h == 100 / 640.0
 
+def test_parse_deeppcb_annotation_valid_space():
+    """
+    Test parsing an actual DeepPCB annotation line (space separated).
+    """
+    line = "466 441 493 470 3"
+    class_id, x_c, y_c, w, h = parse_deeppcb_annotation(line, img_width=640, img_height=640)
+
+    assert class_id == 2  # Type 3 becomes class 2
+    assert x_c == (466 + 493) / 2.0 / 640.0
+    assert y_c == (441 + 470) / 2.0 / 640.0
+    assert w == (493 - 466) / 640.0
+    assert h == (470 - 441) / 640.0
+
 def test_parse_deeppcb_annotation_invalid():
     """
     Test that invalid formats raise appropriate errors.
     """
     with pytest.raises(ValueError):
-        parse_deeppcb_annotation("100 150 200 250 3")  # Space separated instead of comma
-
-    with pytest.raises(ValueError):
-        parse_deeppcb_annotation("100,150,200,250")  # Missing type
+        parse_deeppcb_annotation("100 150 200 250")  # Missing type
 
 def test_parse_deeppcb_annotation_edge_cases():
     """
