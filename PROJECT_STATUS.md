@@ -3,10 +3,10 @@
 ## Overview & Current State
 - **Vision:** Multi-domain AI-powered visual inspection platform for manufacturing quality control (starting with PCB/electronics).
 - **Core Policy:** All inspection models trained from scratch — zero pretrained weights.
-- **Current Phase:** Phase 0 & Phase 0.5 completed (Phase 1 pending start).
-- **Latest Git Commit:** `f56f9ae63616b769dac3087a7a9d7a581fc39b0f` — `fix: Phase 0.5 final cleanup — widen policy guard, fix stale references`
-- **Latest Test Suite Result:** 24 passed, 1 skipped (0 failed) across 5 test suites.
-- **Next Step:** Phase 1 — Data Pipeline & Preprocessing (download and verify DeepPCB dataset, dataset loaders, preprocessing pipeline).
+- **Current Phase:** Phase 1 (Data Pipeline) Planning completed, Implementation pending start.
+- **Latest Git Commit:** `[pending commit]` — `docs: Finalize Phase 1 planning & implement annotation parser`
+- **Latest Test Suite Result:** [pending tests]
+- **Next Step:** Phase 1 — Data Pipeline Implementation (download script, dataset loaders, preprocessing pipeline).
 
 ---
 
@@ -80,22 +80,26 @@
 
 ## Roadmap & Upcoming Phases
 
-### Phase 1: Data Pipeline & Preprocessing (Planned / Not Started)
-- **Status:** Not yet started. No dataset downloaded, no preprocessing code implemented.
-- **Next Immediate Actions (to begin):**
-  - Download and verify DeepPCB dataset (1,500 image pairs across 6 defect classes: Open, Short, Mouse bite, Spur, Spurious copper, Pin hole).
-  - Verify DeepPCB license terms (MIT-style, research use) before any data handling.
-  - Implement annotation converter to normalized YOLO bounding box format.
-  - Create train/val/test splits with golden template reference pairs (80/10/10 split).
+### Phase 1: Data Pipeline & Preprocessing (Planning Complete)
+- **Status:** Planning complete. Research documented in `docs/phase1_dataset_research.md` (APPROVED).
+- **Decisions:**
+  - **Dataset:** DeepPCB (1,500 template-paired images, 6 defect classes). Download from GitHub `PCBData/` directly.
+  - **Annotation Format:** DeepPCB `x1,y1,x2,y2,type` converted to Normalized YOLO, with `class_id = type - 1`.
+  - **Anomaly Strategy:** Three phases: A) Template differencing baseline, B) Small Conv-AE trained from scratch, C) Combined approach. (Deep SVDD removed).
+  - **Splits:** 70/15/15 paired split, using golden-template strategy.
+- **Next Immediate Actions:**
+  - Download and verify DeepPCB dataset.
   - Implement concrete dataset loaders and augmentation pipelines in `core/preprocessing/` and `domains/pcb/preprocessing/`.
-  - Write test coverage for preprocessing pipeline.
+  - Build train/val/test splits generation scripts.
 
 ### Phase 2: Model Architecture (Planned)
 - Custom CNN / defect detection architectures trained from scratch.
 - Training loop, loss functions, checkpointing, and evaluation metrics.
 
 ### Phase 3: Anomaly Detection & Risk Scoring (Planned)
-- Unsupervised anomaly detection for unseen defect classes.
+- Phase A: Template differencing.
+- Phase B: Small convolutional autoencoder.
+- Phase C: Combined logic.
 - Multi-factor risk scoring and confidence calibration.
 
 ### Phase 4: Explainability (Planned)
