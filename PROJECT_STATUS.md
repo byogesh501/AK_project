@@ -4,8 +4,8 @@
 - **Vision:** Multi-domain AI-powered visual inspection platform for manufacturing quality control (starting with PCB/electronics).
 - **Core Policy:** All inspection models trained from scratch — zero pretrained weights.
 - **Current Phase:** Phase 1 (Data Pipeline) Implementation started.
-- **Latest Action:** Created deterministic stratified 70/15/15 splits with metadata and comprehensive automated tests.
-- **Latest Test Suite Result:** 38 passed, 1 skipped (0 failed).
+- **Latest Action:** Completed deterministic stratified dataset splits (exact 1050/225/225) with greedy multi-label stratification and portable path handling.
+- **Latest Test Suite Result:** 39 passed, 1 skipped (0 failed).
 - **Next Step:** Implement dataset loader classes in `domains/pcb/preprocessing/`.
 
 ---
@@ -30,8 +30,8 @@
   - Updated parser to rigorously validate defect types (1-6) and bounding box coordinates (x2 > x1, y2 > y1).
   - **FULL ACQUISITION:** Downloaded the full DeepPCB dataset (cloned from GitHub `tangsanli5201/DeepPCB` and isolated `PCBData/`). No preferred mirrors were accessible without session tokens.
   - **VERIFICATION:** Verified 1,500 perfect image/template pairs with valid annotations. Validated all images are 640x640 cleanly opened via PIL. Verified class distributions (1942 Open, 1506 Short, 1965 Mouse bite, 1625 Spur, 1474 Copper, 1501 Pin hole).
-  - **DETERMINISTIC SPLITS:** Generated stratified 70/15/15 splits (1046 train, 223 val, 231 test) with primary-class stratification ensuring all 6 classes are proportionally represented across splits. Seed=42 for reproducibility.
-  - Created metadata artifacts: `splits.json`, `class_map.json`, `stats.json`, `manifest.csv` in `data/processed/`.
+  - **DETERMINISTIC SPLITS:** Generated stratified exact 70/15/15 splits (1050 train, 225 val, 225 test) using greedy iterative multi-label stratification. Algorithm considers full class sets per pair and balances class distributions across splits. Seed=42 for reproducibility.
+  - Created metadata artifacts with portable paths: `splits.json`, `class_map.json`, `stats.json`, `manifest.csv` in `data/processed/`.
   - Recorded provenance in `data/raw/deeppcb/README.md`.
 - **Decisions:**
   - **Dataset:** DeepPCB (1,500 template-paired images, 6 defect classes). Download from GitHub `PCBData/` directly.

@@ -55,9 +55,9 @@ def find_all_pairs(data_root):
                 pairs.append({
                     "base_name": base,
                     "group": group_dir.name,
-                    "test_img": str(test_img.relative_to(data_root)),
-                    "temp_img": str(temp_img.relative_to(data_root)),
-                    "anno_file": str(anno_file.relative_to(data_root))
+                    "test_img": test_img.relative_to(data_root).as_posix(),
+                    "temp_img": temp_img.relative_to(data_root).as_posix(),
+                    "anno_file": anno_file.relative_to(data_root).as_posix()
                 })
 
     return pairs
@@ -66,16 +66,29 @@ def get_classes_in_image(anno_path):
     """Parse annotation file and return set of class IDs present."""
     classes = set()
     full_path = DATA_ROOT / anno_path
+    line_num = 0
     try:
         with open(full_path, 'r') as f:
             for line in f:
+                line_num += 1
                 line = line.strip()
                 if not line:
                     continue
-                class_id, *_ = parse_deeppcb_annotation(line)
-                classes.add(class_id)
+                try:
+                    class_id, *_ = parse_deeppcb_annotation(line)
+                    classes.add(class_id)
+                except (ValueError, IndexError) as e:
+                    raise ValueError(f"Failed to parse line {line_num} in {anno_path}: {e}")
+    except FileNotFoundError:
+        raise ValueError(f"Annotation file not found: {anno_path}")
     except Exception as e:
-        print(f"Warning: Failed to parse {anno_path}: {e}")
+        if isinstance(e, ValueError) and "Failed to parse line" in str(e):
+            raise  # Re-raise our own parsing errors
+        raise ValueError(f"Error reading annotation file {anno_path}: {e}")
+
+    if not classes:
+        raise ValueError(f"No valid classes found in {anno_path}")
+
     return classes
 
 def stratified_split(pairs, seed=42):
