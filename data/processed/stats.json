@@ -1,35 +1,35 @@
 {
   "train": {
-    "num_pairs": 1046,
+    "num_pairs": 1050,
     "class_distribution": {
-      "open_circuit": 940,
-      "mouse_bite": 878,
-      "spur": 820,
-      "spurious_copper": 859,
-      "pin_hole": 914,
-      "short_circuit": 775
+      "mouse_bite": 886,
+      "spurious_copper": 866,
+      "pin_hole": 918,
+      "open_circuit": 939,
+      "short_circuit": 769,
+      "spur": 828
     }
   },
   "val": {
-    "num_pairs": 223,
+    "num_pairs": 225,
     "class_distribution": {
-      "open_circuit": 201,
-      "short_circuit": 165,
-      "mouse_bite": 196,
-      "spurious_copper": 192,
-      "pin_hole": 197,
-      "spur": 174
+      "open_circuit": 204,
+      "short_circuit": 168,
+      "mouse_bite": 192,
+      "spur": 179,
+      "spurious_copper": 189,
+      "pin_hole": 200
     }
   },
   "test": {
-    "num_pairs": 231,
+    "num_pairs": 225,
     "class_distribution": {
-      "open_circuit": 203,
-      "mouse_bite": 195,
-      "spurious_copper": 190,
-      "pin_hole": 204,
-      "short_circuit": 161,
-      "spur": 190
+      "open_circuit": 201,
+      "short_circuit": 164,
+      "mouse_bite": 191,
+      "spurious_copper": 186,
+      "pin_hole": 197,
+      "spur": 177
     }
   }
 }

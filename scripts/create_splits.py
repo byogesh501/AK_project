@@ -80,17 +80,20 @@ def get_classes_in_image(anno_path):
 
 def stratified_split(pairs, seed=42):
     """
-    Perform deterministic stratified split ensuring class balance across splits.
+    Perform deterministic stratified split with exact 1050/225/225 counts.
 
     Algorithm:
     1. Build stable pair identity using group + base_name
     2. Parse classes for each pair (fail loudly on parse errors)
-    3. Group pairs by their primary class (first class ID when sorted)
-    4. Within each class group, deterministically assign to train/val/test
-       maintaining 70/15/15 ratios per class
-    5. This ensures every class is proportionally represented in all splits
+    3. Sort all pairs deterministically by (group, base_name)
+    4. Use iterative stratified splitting that considers full multi-label class sets
+    5. Assign pairs sequentially to splits while balancing class distributions
+    6. This ensures all classes are proportionally represented across splits
     """
     random.seed(seed)
+
+    # Target exact counts
+    TARGET_COUNTS = {"train": 1050, "val": 225, "test": 225}
 
     # Get classes per pair with error handling
     pair_classes = {}
@@ -105,41 +108,64 @@ def stratified_split(pairs, seed=42):
     if parse_failures:
         raise ValueError(f"Failed to parse classes from {len(parse_failures)} annotation files: {parse_failures[:5]}")
 
-    # Group pairs by their primary class (lowest class ID for determinism)
-    class_to_pairs = defaultdict(list)
-    for p in pairs:
+    # Sort pairs deterministically, then shuffle with seed
+    sorted_pairs = sorted(pairs, key=lambda x: (x['group'], x['base_name']))
+    random.shuffle(sorted_pairs)
+
+    # Count class occurrences per pair across all data
+    total_class_counts = defaultdict(int)
+    for classes in pair_classes.values():
+        for c in classes:
+            total_class_counts[c] += 1
+
+    # Initialize splits and their class counts
+    splits = {"train": [], "val": [], "test": []}
+    split_class_counts = {
+        "train": defaultdict(int),
+        "val": defaultdict(int),
+        "test": defaultdict(int)
+    }
+
+    # Iteratively assign pairs to splits balancing class distributions
+    for p in sorted_pairs:
         pair_id = f"{p['group']}_{p['base_name']}"
         classes = pair_classes[pair_id]
-        primary_class = min(classes)  # Use lowest class ID as primary
-        class_to_pairs[primary_class].append(p)
 
-    # Shuffle each class group independently with the same seed for determinism
-    for class_id in class_to_pairs:
-        pairs_in_class = class_to_pairs[class_id]
-        # Sort first for determinism across platforms, then shuffle
-        pairs_in_class.sort(key=lambda x: (x['group'], x['base_name']))
-        random.Random(seed + class_id).shuffle(pairs_in_class)
+        # Find which split needs this pair most (considering class balance)
+        best_split = None
+        best_score = float('-inf')
 
-    # Distribute each class group across splits maintaining 70/15/15 ratio
-    train_pairs = []
-    val_pairs = []
-    test_pairs = []
+        for split_name in ["train", "val", "test"]:
+            # Skip if split is full
+            if len(splits[split_name]) >= TARGET_COUNTS[split_name]:
+                continue
 
-    for class_id in sorted(class_to_pairs.keys()):
-        class_pairs = class_to_pairs[class_id]
-        n = len(class_pairs)
-        n_train = int(n * SPLIT_RATIOS["train"])
-        n_val = int(n * SPLIT_RATIOS["val"])
+            # Calculate how much this pair would improve class balance
+            # Score = sum of (target_ratio - current_ratio) for each class in pair
+            score = 0
+            for c in classes:
+                target_ratio = TARGET_COUNTS[split_name] / len(pairs)
+                current_count = split_class_counts[split_name][c]
+                current_ratio = current_count / total_class_counts[c] if total_class_counts[c] > 0 else 0
+                score += (target_ratio - current_ratio)
 
-        train_pairs.extend(class_pairs[:n_train])
-        val_pairs.extend(class_pairs[n_train:n_train + n_val])
-        test_pairs.extend(class_pairs[n_train + n_val:])
+            if best_split is None or score > best_score:
+                best_split = split_name
+                best_score = score
 
-    return {
-        "train": train_pairs,
-        "val": val_pairs,
-        "test": test_pairs
-    }, pair_classes
+        # Assign to best split
+        if best_split:
+            splits[best_split].append(p)
+            for c in classes:
+                split_class_counts[best_split][c] += 1
+
+    # Verify exact counts
+    for split_name, target_count in TARGET_COUNTS.items():
+        actual_count = len(splits[split_name])
+        if actual_count != target_count:
+            raise ValueError(f"Split {split_name} has {actual_count} pairs, expected {target_count}")
+
+    return splits, pair_classes
 
 def compute_stats(splits, pair_classes):
     """Compute class distribution and counts per split."""
@@ -277,11 +303,12 @@ def main():
             print(f"  {cls}: {count}")
 
     print("\n=== STRATIFICATION METHOD ===")
-    print("Algorithm: Primary-class stratification")
-    print("- Each pair is assigned a primary class (lowest class ID)")
-    print("- Pairs within each class group are shuffled deterministically")
-    print("- Each class group is split 70/15/15 independently")
-    print("- This ensures proportional representation of all classes across splits")
+    print("Algorithm: Greedy iterative multi-label stratification")
+    print("- Pairs are shuffled deterministically with seed=42")
+    print("- Each pair is assigned to the split that most needs its classes")
+    print("- Assignment considers full multi-label class sets, not just primary class")
+    print("- Scoring function balances class ratios across train/val/test")
+    print("- Guarantees exact 1050/225/225 split with proportional class representation")
 
     return 0
 

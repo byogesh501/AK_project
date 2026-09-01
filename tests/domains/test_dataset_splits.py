@@ -3,6 +3,7 @@ import json
 import csv
 from pathlib import Path
 import sys
+from collections import defaultdict
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -35,16 +36,16 @@ def test_split_determinism():
 
 
 def test_split_counts():
-    """Test that splits have correct counts (1050/225/225 for 1500 pairs)."""
+    """Test that splits have exact counts: 1050 train, 225 val, 225 test."""
     pairs = find_all_pairs(DATA_ROOT)
     assert len(pairs) == 1500, f"Expected 1500 pairs, got {len(pairs)}"
 
     splits, _ = stratified_split(pairs, SEED)
 
-    # Check approximate 70/15/15 split
-    assert len(splits["train"]) >= 1040 and len(splits["train"]) <= 1060
-    assert len(splits["val"]) >= 220 and len(splits["val"]) <= 230
-    assert len(splits["test"]) >= 220 and len(splits["test"]) <= 235
+    # Check exact counts
+    assert len(splits["train"]) == 1050, f"Train has {len(splits['train'])} pairs, expected 1050"
+    assert len(splits["val"]) == 225, f"Val has {len(splits['val'])} pairs, expected 225"
+    assert len(splits["test"]) == 225, f"Test has {len(splits['test'])} pairs, expected 225"
 
     # Check total
     total = len(splits["train"]) + len(splits["val"]) + len(splits["test"])
@@ -159,3 +160,34 @@ def test_validation_passes():
 
     errors = validate_splits(splits, pairs, pair_classes)
     assert len(errors) == 0, f"Validation errors: {errors}"
+
+
+def test_class_distribution_balance():
+    """Test that class distributions across splits are reasonably balanced."""
+    pairs = find_all_pairs(DATA_ROOT)
+    splits, pair_classes = stratified_split(pairs, SEED)
+    stats = compute_stats(splits, pair_classes)
+
+    # Calculate total class counts across all data
+    total_class_counts = defaultdict(int)
+    for pair_id in pair_classes:
+        for c in pair_classes[pair_id]:
+            total_class_counts[CLASS_NAMES[c]] += 1
+
+    # For each split, check that class proportions are within reasonable bounds
+    for split_name in ["train", "val", "test"]:
+        split_ratio = len(splits[split_name]) / len(pairs)
+        dist = stats[split_name]["class_distribution"]
+
+        for class_name in CLASS_NAMES.values():
+            total_count = total_class_counts[class_name]
+            expected_count = total_count * split_ratio
+            actual_count = dist[class_name]
+
+            # Allow 15% deviation from expected proportional distribution
+            tolerance = 0.15
+            lower_bound = expected_count * (1 - tolerance)
+            upper_bound = expected_count * (1 + tolerance)
+
+            assert lower_bound <= actual_count <= upper_bound, \
+                f"Class {class_name} in {split_name}: {actual_count} not in [{lower_bound:.1f}, {upper_bound:.1f}]"
