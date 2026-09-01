@@ -4,15 +4,17 @@
 - **Vision:** Multi-domain AI-powered visual inspection platform for manufacturing quality control (starting with PCB/electronics).
 - **Core Policy:** All inspection models trained from scratch — zero pretrained weights.
 - **Current Phase:** Phase 1 (Data Pipeline) Implementation started.
-- **Latest Action:** Acquired verified sample from DeepPCB and validated formats.
-- **Latest Test Suite Result:** 28 passed, 1 skipped (0 failed).
-- **Next Step:** Implement concrete dataset loaders and splits.
+- **Latest Action:** Updated annotation validation with constraints and improved test coverage.
+- **Latest Test Suite Result:** 29 passed, 1 skipped (0 failed).
+- **Next Step:** Implement concrete dataset loaders and splits (when ready for full dataset download).
 
 ---
 
-## Phase 0: Project Scaffolding ✅ (Completed)
-
-[See Phase 0/0.5 previously completed scaffolding details in git history...]
+## Phase 0 & 0.5: Project Scaffolding & Architecure ✅ (Completed)
+- **Core (`core/`) & Domains (`domains/pcb/`)**: Added module stubs for preprocessing, models, anomaly, risk, explainability, safety. Base abstract classes (`BasePreprocessor`, `BaseModel`, `BaseAnomalyDetector`, `BaseRiskScorer`, `BaseExplainer`) rejecting direct instantiation.
+- **Review Framework**: Domain-agnostic HITL scaffolding (`core/review/`) with `VerdictStatus`, `Verdict`, and abstract store/policy classes.
+- **Quality/Safety**: Added `api/main.py` health endpoint. Strict "no pretrained weights" enforced by `tests/test_policy.py` failing on forbidden patterns.
+- **Config & Git Tools**: Comprehensive `.gitignore` and `.gitattributes` avoiding large binaries and syncing LF line endings. Architecture decisions documented in `docs/architecture.md`.
 
 ---
 
@@ -25,6 +27,7 @@
   - Verified directory structure, paired mechanism, and format.
   - **CRITICAL DATASET FINDING:** The documentation claims comma-separated values (`x1,y1,x2,y2,type`), but the real annotations are *space-separated* (`x1 y1 x2 y2 type`).
   - Implemented `parse_deeppcb_annotation` (handling spaces & commas) + YOLO converter + regression tests.
+  - Updated parser to rigorously validate defect types (1-6) while skipping redundant `verify_sample.py` scripts.
   - Recorded provenance in `data/raw/deeppcb/README.md`.
 - **Decisions:**
   - **Dataset:** DeepPCB (1,500 template-paired images, 6 defect classes). Download from GitHub `PCBData/` directly.
@@ -32,6 +35,7 @@
   - **Anomaly Strategy:** Three phases: A) Template differencing baseline, B) Small Conv-AE trained from scratch, C) Combined approach. (Deep SVDD removed).
   - **Splits:** 70/15/15 paired split, using golden-template strategy.
 - **Next Immediate Actions:**
+  - Proceed to full DeepPCB dataset download.
   - Implement concrete dataset loaders and augmentation pipelines in `core/preprocessing/` and `domains/pcb/preprocessing/`.
   - Build train/val/test splits generation scripts.
 

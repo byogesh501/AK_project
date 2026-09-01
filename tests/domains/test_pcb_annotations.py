@@ -31,8 +31,18 @@ def test_parse_deeppcb_annotation_invalid():
     """
     Test that invalid formats raise appropriate errors.
     """
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Expected 5 values"):
         parse_deeppcb_annotation("100 150 200 250")  # Missing type
+
+def test_parse_deeppcb_annotation_invalid_defect_type():
+    """
+    Test that defect types outside the range 1-6 raise a ValueError.
+    """
+    with pytest.raises(ValueError, match="Invalid defect_type"):
+        parse_deeppcb_annotation("100,150,200,250,0")  # defect type 0
+
+    with pytest.raises(ValueError, match="Invalid defect_type"):
+        parse_deeppcb_annotation("100 150 200 250 7")  # defect type 7
 
 def test_parse_deeppcb_annotation_edge_cases():
     """

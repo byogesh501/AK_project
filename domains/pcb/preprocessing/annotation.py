@@ -23,6 +23,9 @@ def parse_deeppcb_annotation(line: str, img_width: int = 640, img_height: int = 
 
     x1, y1, x2, y2, defect_type = map(int, parts)
 
+    if not (1 <= defect_type <= 6):
+        raise ValueError(f"Invalid defect_type {defect_type}. Must be between 1 and 6.")
+
     # Convert from 1-indexed to 0-indexed
     class_id = defect_type - 1
 
