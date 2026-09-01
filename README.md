@@ -53,6 +53,6 @@ pytest
 
 ## Status
 
-**Phase: Project Scaffolding** — Structure created, no features implemented yet.
+**Phase 1: Data Pipeline & Preprocessing** — Project structure created, API health endpoint active, and human-in-the-loop base logic implemented. The DeepPCB dataset has been acquired and bounding box annotation parsing fully verified. Dataloader implementation follows.
 
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for the full roadmap.

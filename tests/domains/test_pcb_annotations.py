@@ -44,6 +44,22 @@ def test_parse_deeppcb_annotation_invalid_defect_type():
     with pytest.raises(ValueError, match="Invalid defect_type"):
         parse_deeppcb_annotation("100 150 200 250 7")  # defect type 7
 
+def test_parse_deeppcb_annotation_invalid_coordinates():
+    """
+    Test that inverted or zero-width coordinates raise a ValueError.
+    """
+    with pytest.raises(ValueError, match="Invalid x coordinates"):
+        parse_deeppcb_annotation("200,150,100,250,3")  # x2 < x1
+
+    with pytest.raises(ValueError, match="Invalid y coordinates"):
+        parse_deeppcb_annotation("100,250,200,150,3")  # y2 < y1
+
+    with pytest.raises(ValueError, match="Invalid x coordinates"):
+        parse_deeppcb_annotation("100,150,100,250,3")  # x2 == x1
+
+    with pytest.raises(ValueError, match="Invalid y coordinates"):
+        parse_deeppcb_annotation("100,150,200,150,3")  # y2 == y1
+
 def test_parse_deeppcb_annotation_edge_cases():
     """
     Test edge cases for coordinates (e.g., 0 and max dimensions).

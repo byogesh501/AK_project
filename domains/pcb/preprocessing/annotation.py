@@ -23,6 +23,11 @@ def parse_deeppcb_annotation(line: str, img_width: int = 640, img_height: int = 
 
     x1, y1, x2, y2, defect_type = map(int, parts)
 
+    if x2 <= x1:
+        raise ValueError(f"Invalid x coordinates: x2 ({x2}) must be > x1 ({x1})")
+    if y2 <= y1:
+        raise ValueError(f"Invalid y coordinates: y2 ({y2}) must be > y1 ({y1})")
+
     if not (1 <= defect_type <= 6):
         raise ValueError(f"Invalid defect_type {defect_type}. Must be between 1 and 6.")
 

@@ -31,7 +31,7 @@ Identify a suitable free/public PCB defect detection dataset for the AK Visual I
 | **Resolution** | 640×640 pixels, grayscale-like (thresholded/binarized PCB scans) |
 | **Format** | `.jpg` images |
 | **Defect Classes** | 6 types: **open circuit**, **short circuit**, **mouse bite**, **spur**, **spurious copper**, **pin hole** |
-| **Annotations** | Custom `.txt` format: each line = `x1,y1,x2,y2,type` (comma-separated, `type` is 1-6) |
+| **Annotations** | Custom `.txt` format: each line = `x1 y1 x2 y2 type` (1-6). The parser accepts both space separated and comma-separated for robustness. |
 | **Localization** | ✅ Bounding box annotations per defect instance |
 | **Template/Reference** | ✅ Every defect image has a paired defect-free template image (same board region) |
 | **License** | MIT License (explicitly stated in the repository) |
@@ -174,7 +174,9 @@ Derived from DeepPCB's taxonomy, aligning with real PCB manufacturing defect cat
 All coordinates normalized to [0, 1] relative to image dimensions.
 
 **Parsing DeepPCB format:**
-DeepPCB annotations are comma-separated without spaces: `x1,y1,x2,y2,type`
+DeepPCB annotations are formally documented as comma-separated (`x1,y1,x2,y2,type`), but actually found space-separated (`x1 y1 x2 y2 type`) in the main dataset repository.
+Our parser leverages regex (`[\s,]+`) to cleanly support both formats for robustness.
+
 - The `type` is 1-indexed (1 through 6).
 - Conversion to 0-indexed: `class_id = type - 1`
 
