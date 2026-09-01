@@ -4,9 +4,9 @@
 - **Vision:** Multi-domain AI-powered visual inspection platform for manufacturing quality control (starting with PCB/electronics).
 - **Core Policy:** All inspection models trained from scratch — zero pretrained weights.
 - **Current Phase:** Phase 1 (Data Pipeline) Implementation started.
-- **Latest Action:** Implemented PyTorch dataset loader for template-paired defect detection with comprehensive tests.
-- **Latest Test Suite Result:** 52 passed, 1 skipped (0 failed).
-- **Next Step:** Implement image augmentation pipelines in `core/preprocessing/`.
+- **Latest Action:** Implemented paired image preprocessing and augmentation pipeline with bounding box transformations.
+- **Latest Test Suite Result:** 66 passed, 1 skipped (0 failed).
+- **Next Step:** Phase 1 complete. Ready for Phase 2: Model Architecture implementation.
 
 ---
 
@@ -33,6 +33,7 @@
   - **DETERMINISTIC SPLITS:** Generated stratified exact 70/15/15 splits (1050 train, 225 val, 225 test) using greedy iterative multi-label stratification. Algorithm considers full class sets per pair and balances class distributions across splits. Seed=42 for reproducibility.
   - Created metadata artifacts with portable paths: `splits.json`, `class_map.json`, `stats.json`, `manifest.csv` in `data/processed/`.
   - **PYTORCH DATASET LOADER:** Implemented `DeepPCBDataset` in `domains/pcb/preprocessing/dataset.py` for template-paired loading. Loads defect image, golden template, and parsed annotations per sample. Uses existing annotation parser. Handles portable manifest paths correctly. Supports train/val/test split isolation.
+  - **PREPROCESSING/AUGMENTATION:** Implemented paired image transforms in `domains/pcb/preprocessing/transforms.py`. Supports spatial augmentations (horizontal/vertical flip, 90° rotations) with correct bounding box transformations. Color jittering preserves spatial sync. `TrainTransform` for augmented training, `ValTestTransform` for deterministic val/test. All transforms maintain annotation validity and image/template synchronization.
   - Recorded provenance in `data/raw/deeppcb/README.md`.
 - **Decisions:**
   - **Dataset:** DeepPCB (1,500 template-paired images, 6 defect classes). Download from GitHub `PCBData/` directly.
@@ -40,7 +41,8 @@
   - **Anomaly Strategy:** Three phases: A) Template differencing baseline, B) Small Conv-AE trained from scratch, C) Combined approach. (Deep SVDD removed).
   - **Splits:** 70/15/15 paired split, using golden-template strategy.
 - **Next Immediate Actions:**
-  - Implement image augmentation pipelines in `core/preprocessing/`.
+  - Phase 1 (Data Pipeline & Preprocessing) is complete.
+  - Begin Phase 2: Design and implement custom CNN architecture for defect detection trained from scratch.
 
 ### Phase 2: Model Architecture (Planned)
 - Custom CNN / defect detection architectures trained from scratch.
