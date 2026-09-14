@@ -36,3 +36,6 @@ logs/*.log
 .claude/settings.local.json
 .claude/tasks/
 .claude/output/
+
+# MCP configuration (contains API keys)
+.agents/
