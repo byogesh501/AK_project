@@ -34,6 +34,7 @@
   - Created metadata artifacts with portable paths: `splits.json`, `class_map.json`, `stats.json`, `manifest.csv` in `data/processed/`.
   - **PYTORCH DATASET LOADER:** Implemented `DeepPCBDataset` in `domains/pcb/preprocessing/dataset.py` for template-paired loading. Loads defect image, golden template, and parsed annotations per sample. Uses existing annotation parser. Handles portable manifest paths correctly. Supports train/val/test split isolation.
   - **PREPROCESSING/AUGMENTATION:** Implemented paired image transforms in `domains/pcb/preprocessing/transforms.py`. Supports spatial augmentations (horizontal/vertical flip, 90° rotations) with correct bounding box transformations. Color jittering preserves spatial sync. `TrainTransform` for augmented training, `ValTestTransform` for deterministic val/test. All transforms maintain annotation validity and image/template synchronization.
+  - **PIPELINE INTEGRATION:** Implemented `PCBPreprocessor` (subclassing `BasePreprocessor`) to wire dataset, transforms, and dataloader. Created custom `pcb_collate_fn` for batched padding and masking of variable-length bounding box annotations.
   - Recorded provenance in `data/raw/deeppcb/README.md`.
 - **Decisions:**
   - **Dataset:** DeepPCB (1,500 template-paired images, 6 defect classes). Download from GitHub `PCBData/` directly.

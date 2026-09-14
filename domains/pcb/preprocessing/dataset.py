@@ -5,7 +5,7 @@ PyTorch dataset loader for DeepPCB defect detection.
 import csv
 import json
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Callable
 
 import torch
 from torch.utils.data import Dataset
@@ -25,12 +25,16 @@ class DeepPCBDataset(Dataset):
     - annotations: List of bounding boxes in normalized YOLO format
     - metadata: Additional info (pair_id, group, classes)
 
+    Transforms receive ``(defect_img, template_img, annotations)`` and
+    must return ``(defect_out, template_out, annotations_out)`` to keep
+    the pair synchronized (see ``TrainTransform`` / ``ValTestTransform``).
+
     Args:
         data_root: Path to data/raw/deeppcb/
         manifest_path: Path to data/processed/manifest.csv
         split: One of 'train', 'val', or 'test'
         class_map_path: Optional path to class_map.json
-        transform: Optional transform to apply to images
+        transform: Optional paired transform ``(defect, template, annos) -> ...``
     """
 
     def __init__(
@@ -39,7 +43,7 @@ class DeepPCBDataset(Dataset):
         manifest_path: str,
         split: str,
         class_map_path: Optional[str] = None,
-        transform: Optional[object] = None
+        transform: Optional[Callable] = None
     ):
         assert split in ['train', 'val', 'test'], f"Invalid split: {split}"
 
@@ -147,10 +151,11 @@ class DeepPCBDataset(Dataset):
         except Exception as e:
             raise ValueError(f"Failed to load annotations from {anno_path}: {e}")
 
-        # Apply transforms if provided
+        # Apply paired transform: (defect, template, annotations) -> (out, out, annos)
         if self.transform:
-            defect_image = self.transform(defect_image)
-            template_image = self.transform(template_image)
+            defect_image, template_image, annotations = self.transform(
+                defect_image, template_image, annotations
+            )
 
         # Parse class names
         class_names = set(sample_info['classes'].split(';')) if sample_info['classes'] else set()
