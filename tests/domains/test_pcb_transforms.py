@@ -144,20 +144,112 @@ def test_rotation_180_bbox_transform():
     assert rotated['class_id'] == orig['class_id']
 
 
+def test_rotation_270_bbox_transform():
+    """Test that 270-degree rotation correctly transforms bounding boxes."""
+    transform = PairedRandomRotation(angles=[270])  # Always 270°
+    defect_img = create_test_image()
+    template_img = create_test_image()
+    annotations = [{'class_id': 0, 'x_center': 0.3, 'y_center': 0.7, 'width': 0.2, 'height': 0.1}]
+
+    _, _, rotated_annos = transform(defect_img, template_img, annotations)
+
+    # 270° rotation: (x, y) -> (1-y, x), swap width/height
+    orig = annotations[0]
+    rotated = rotated_annos[0]
+
+    assert abs(rotated['x_center'] - (1.0 - orig['y_center'])) < 1e-6
+    assert abs(rotated['y_center'] - orig['x_center']) < 1e-6
+    assert abs(rotated['width'] - orig['height']) < 1e-6
+    assert abs(rotated['height'] - orig['width']) < 1e-6
+    assert rotated['class_id'] == orig['class_id']
+
+
+def test_rotation_270_deterministic_pixel_arrangement():
+    """Test 270° rotation with deterministic synthetic image to verify pixel arrangement."""
+    # Create a small 4x4 test image with unique pixel pattern
+    # Pattern: top-left quadrant is red, others are black
+    test_array = np.zeros((4, 4, 3), dtype=np.uint8)
+    test_array[0:2, 0:2, 0] = 255  # Top-left red quadrant
+
+    defect_img = Image.fromarray(test_array, mode='RGB')
+    template_img = Image.fromarray(test_array, mode='RGB')
+
+    transform = PairedRandomRotation(angles=[270])
+    defect_rotated, template_rotated, _ = transform(defect_img, template_img, [])
+
+    # After 270° rotation, top-left quadrant should move to top-right
+    defect_array = np.array(defect_rotated)
+    template_array = np.array(template_rotated)
+
+    # Verify dimensions unchanged (square image)
+    assert defect_array.shape == (4, 4, 3)
+    assert template_array.shape == (4, 4, 3)
+
+    # After 270° rotation: original top-left (rows 0-1, cols 0-1)
+    # moves to top-right (rows 0-1, cols 2-3)
+    assert defect_array[0:2, 2:4, 0].mean() > 200  # Red channel should be high at top-right
+    assert defect_array[0:2, 0:2, 0].mean() < 50   # Original top-left should now be black
+
+    # Verify both images rotated identically (synchronized)
+    assert np.array_equal(defect_array, template_array)
+
+
 def test_paired_image_synchronization():
-    """Test that spatial transforms keep defect and template synchronized."""
-    transform = PairedRandomHorizontalFlip(p=1.0)
+    """Test that spatial transforms keep defect and template synchronized with deterministic pixel verification."""
+    # Create a deterministic asymmetric pattern so we can verify exact synchronization
+    # Use a small 8x8 image with a distinctive pattern: vertical gradient on left half
+    test_array = np.zeros((8, 8, 3), dtype=np.uint8)
 
-    # Create distinguishable images
-    defect_img = create_test_image(color=(255, 0, 0))
-    template_img = create_test_image(color=(0, 255, 0))
-    annotations = create_test_annotations()
+    # Left half: vertical red gradient (0 to 255)
+    for i in range(8):
+        test_array[i, 0:4, 0] = int(i * 255 / 7)  # Red channel gradient
 
-    defect_flipped, template_flipped, _ = transform(defect_img, template_img, annotations)
+    # Right half: solid blue
+    test_array[:, 4:8, 2] = 200  # Blue channel
 
-    # Both should be flipped
-    assert defect_flipped.size == defect_img.size
-    assert template_flipped.size == template_img.size
+    defect_img = Image.fromarray(test_array, mode='RGB')
+
+    # Template has same pattern but green instead of red on left
+    template_array = test_array.copy()
+    template_array[:, 0:4, 1] = template_array[:, 0:4, 0]  # Copy red gradient to green
+    template_array[:, 0:4, 0] = 0  # Zero out red
+    template_img = Image.fromarray(template_array, mode='RGB')
+
+    # Test horizontal flip synchronization
+    hflip_transform = PairedRandomHorizontalFlip(p=1.0)
+    defect_flipped, template_flipped, _ = hflip_transform(defect_img, template_img, [])
+
+    defect_arr = np.array(defect_flipped)
+    template_arr = np.array(template_flipped)
+
+    # After horizontal flip, left and right should be swapped
+    # Original left (gradient) should now be on right
+    assert defect_arr[:, 4:8, 0].mean() > 50  # Red gradient now on right
+    assert template_arr[:, 4:8, 1].mean() > 50  # Green gradient now on right
+
+    # Original right (blue) should now be on left
+    assert defect_arr[:, 0:4, 2].mean() > 150  # Blue now on left
+    assert template_arr[:, 0:4, 2].mean() > 150  # Blue now on left
+
+    # Verify spatial transformation is identical for both images (structure preserved)
+    # Both should have blue on left after flip
+    assert np.array_equal(defect_arr[:, 0:4, 2] > 150, template_arr[:, 0:4, 2] > 150)
+
+    # Test rotation synchronization with same pattern
+    rotation_transform = PairedRandomRotation(angles=[90])
+    defect_rotated, template_rotated, _ = rotation_transform(defect_img, template_img, [])
+
+    defect_rot_arr = np.array(defect_rotated)
+    template_rot_arr = np.array(template_rotated)
+
+    # After 90° rotation, verify both images have same spatial structure
+    # The gradient pattern should maintain synchronization
+    assert defect_rot_arr.shape == template_rot_arr.shape
+
+    # Verify the blue region is in the same location for both images after rotation
+    defect_blue_mask = defect_rot_arr[:, :, 2] > 150
+    template_blue_mask = template_rot_arr[:, :, 2] > 150
+    assert np.array_equal(defect_blue_mask, template_blue_mask)
 
 
 def test_color_jitter_preserves_annotations():
