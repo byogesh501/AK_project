@@ -3,10 +3,10 @@
 ## Overview & Current State
 - **Vision:** Multi-domain AI-powered visual inspection platform for manufacturing quality control (starting with PCB/electronics).
 - **Core Policy:** All inspection models trained from scratch — zero pretrained weights.
-- **Current Phase:** Phase 1 (Data Pipeline) Implementation started.
-- **Latest Action:** Implemented paired image preprocessing and augmentation pipeline with bounding box transformations.
-- **Latest Test Suite Result:** 66 passed, 1 skipped (0 failed).
-- **Next Step:** Phase 1 complete. Ready for Phase 2: Model Architecture implementation.
+- **Current Phase:** Phase 1 (Data Pipeline) — Complete ✅
+- **Latest Action:** Added the minimal PCB detector training pipeline: train/validation loops, validation-selected checkpoints, and a CLI using the existing DeepPCB DataLoaders and loss.
+- **Latest Test Suite Result:** Phase 2B tests and real-data sanity training are pending a local Python environment with PyTorch and pytest.
+- **Next Step:** Run the bounded real-data Phase 2B sanity training and verify the checkpoint.
 
 ---
 
@@ -45,9 +45,20 @@
   - Phase 1 (Data Pipeline & Preprocessing) is complete.
   - Begin Phase 2: Design and implement custom CNN architecture for defect detection trained from scratch.
 
-### Phase 2: Model Architecture (Planned)
-- Custom CNN / defect detection architectures trained from scratch.
-- Training loop, loss functions, checkpointing, and evaluation metrics.
+### Phase 2: Model Architecture (In Progress)
+- **Status:** Phase 2A (Detector Architecture) complete; Phase 2B training pipeline implemented.
+- **Completed Actions:**
+  - Implemented custom lightweight CNN detection architecture (`domains/pcb/models/`).
+  - Strict compliance with policy: trained completely from scratch without pretrained weights.
+  - Implemented multi-scale residual backbone (`PCBBackbone`, strides 8, 16, 32).
+  - Implemented lightweight FPN+PANet neck (`PCBNeck`) for feature fusion.
+  - Implemented decoupled anchor-free YOLO-style prediction heads (`PCBHead`).
+  - Implemented decoupled YOLO loss (`PCBLoss`) handling batched variable-length annotations via mask.
+  - Added unit tests verifying structural initialization (13M train parameters default, 3M in test size), multi-scale outputs, and backwards pass.
+  - Added `PCBTrainer` with masked-target training and no-gradient validation, plus best-validation checkpoint serialization.
+  - Added `scripts/train_pcb_detector.py`, which uses train and validation splits only; the held-out test split is not constructed or read.
+- **Next Immediate Actions:**
+  - Run a bounded real-data sanity training pass and inspect the saved validation-selected checkpoint.
 
 ### Phase 3: Anomaly Detection & Risk Scoring (Planned)
 - Phase A: Template differencing.

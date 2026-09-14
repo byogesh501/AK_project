@@ -15,12 +15,14 @@ data:
   processed_dir: "data/processed"
   samples_dir: "data/samples"
 
-# Training defaults (placeholder — no training yet)
+# PCB detector training defaults
 training:
   batch_size: 16
   learning_rate: 0.001
   epochs: 50
   device: "auto"          # "auto" | "cpu" | "cuda"
+  num_workers: 0
+  checkpoint_path: "checkpoints/pcb_detector_best.pt"
 
 # Human-in-the-loop review
 review:

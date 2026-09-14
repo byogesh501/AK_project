@@ -85,7 +85,10 @@ class PCBPreprocessor(BasePreprocessor):
         """
         Return one augmented copy (as numpy) of the image.
 
-        For paired augmentation use :meth:`create_dataloader` instead.
+        **Note:** This method satisfies the ``BasePreprocessor`` interface but
+        does NOT perform paired augmentation. For training with synchronized
+        defect/template augmentation, use :meth:`create_dataloader` which
+        applies ``TrainTransform`` to both images together.
         """
         arr = self.preprocess(image)
         return [arr]

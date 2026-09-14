@@ -152,7 +152,12 @@ class TestPCBPreprocessor:
         assert arr.dtype.kind == "f"  # float32
 
     def test_augment_returns_list(self, tmp_path):
-        """augment returns a list of numpy arrays."""
+        """
+        augment returns a list of numpy arrays.
+
+        Note: augment() satisfies BasePreprocessor interface but does NOT
+        perform paired augmentation. Use create_dataloader() for training.
+        """
         pp = self._dummy_preprocessor(tmp_path)
         img = Image.new("RGB", (IMAGE_WIDTH, IMAGE_HEIGHT))
         result = pp.augment(img)
