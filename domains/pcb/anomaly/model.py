@@ -5,6 +5,7 @@ from torch import nn
 
 
 PAIR_INPUT_CHANNELS = 9
+MODEL_INPUT_CHANNELS = 3
 
 
 def build_pair_difference_input(
@@ -57,20 +58,21 @@ class _DeconvBlock(nn.Sequential):
 
 
 class ConvAutoencoder(nn.Module):
-    """Small autoencoder that reconstructs a normal PCB template from a pair.
+    """Small denoising autoencoder for normal RGB PCB appearances.
 
     The model has no external initialization or pretrained components.  Its
     four downsampling stages require the native DeepPCB 640x640 inputs (or
-    another spatial size divisible by 16), and it emits a 3-channel image in
-    ``[0, 1]`` suitable for comparison with the inspected PCB.
+    another spatial size divisible by 16).  It receives only an RGB image and
+    emits a 3-channel image in ``[0, 1]`` suitable for comparison with the
+    inspected PCB.  The reconstruction target is never supplied as a channel.
     """
 
-    def __init__(self, base_channels: int = 16, in_channels: int = PAIR_INPUT_CHANNELS):
+    def __init__(self, base_channels: int = 16, in_channels: int = MODEL_INPUT_CHANNELS):
         super().__init__()
         if base_channels < 1:
             raise ValueError("base_channels must be positive")
-        if in_channels != PAIR_INPUT_CHANNELS:
-            raise ValueError(f"ConvAutoencoder expects {PAIR_INPUT_CHANNELS} input channels")
+        if in_channels != MODEL_INPUT_CHANNELS:
+            raise ValueError(f"ConvAutoencoder expects {MODEL_INPUT_CHANNELS} input channels")
 
         self.encoder = nn.Sequential(
             _ConvBlock(in_channels, base_channels),
@@ -86,13 +88,13 @@ class ConvAutoencoder(nn.Module):
             nn.Sigmoid(),
         )
 
-    def forward(self, pair_input: torch.Tensor) -> torch.Tensor:
-        """Reconstruct the three-channel golden-template image."""
-        if pair_input.ndim != 4:
-            raise ValueError("pair_input must have shape [B, 9, H, W]")
-        if pair_input.shape[1] != PAIR_INPUT_CHANNELS:
-            raise ValueError(f"pair_input must have {PAIR_INPUT_CHANNELS} channels")
-        height, width = pair_input.shape[-2:]
+    def forward(self, model_input: torch.Tensor) -> torch.Tensor:
+        """Reconstruct the normal RGB target from an RGB model input."""
+        if model_input.ndim != 4:
+            raise ValueError("model_input must have shape [B, 3, H, W]")
+        if model_input.shape[1] != MODEL_INPUT_CHANNELS:
+            raise ValueError(f"model_input must have {MODEL_INPUT_CHANNELS} channels")
+        height, width = model_input.shape[-2:]
         if height % 16 or width % 16:
             raise ValueError("Input height and width must be divisible by 16")
-        return self.decoder(self.encoder(pair_input))
+        return self.decoder(self.encoder(model_input))
