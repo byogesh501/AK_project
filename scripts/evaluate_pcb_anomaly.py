@@ -16,7 +16,6 @@ from domains.pcb.anomaly import (
     score_statistics,
 )
 from domains.pcb.preprocessing.dataset import DeepPCBDataset
-from domains.pcb.training.trainer import resolve_device
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -37,6 +36,15 @@ def parse_args():
     parser.add_argument("--max-batches", type=int, default=None,
                         help="Cap batches for smoke testing; default evaluates all 225 test pairs.")
     return parser.parse_args()
+
+
+def resolve_device(device: str = "auto") -> torch.device:
+    if device == "auto":
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    resolved = torch.device(device)
+    if resolved.type == "cuda" and not torch.cuda.is_available():
+        raise ValueError("CUDA was requested but is not available")
+    return resolved
 
 
 def _load_model(checkpoint_path: Path, device: torch.device) -> ConvAutoencoder:

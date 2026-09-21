@@ -14,9 +14,15 @@ from .dataset import (
 )
 from .evaluation import (
     ThresholdCalibration,
+    annotation_mask,
     apply_threshold,
     calibrate_validation_threshold,
+    evaluate_known_defect_batches,
+    known_defect_metrics,
+    localization_metrics,
+    per_class_known_defect_metrics,
     score_labeled_batch,
+    score_statistics,
 )
 from .model import (
     ConvAutoencoder,
@@ -30,7 +36,16 @@ from .scoring import (
     score_model_inputs,
     score_pair_inputs,
 )
-from .training import AnomalyTrainer, AnomalyTrainingConfig
+
+# Lazy import training components to avoid core/models dependencies
+# breaking anomaly evaluation in constrained environments (e.g., Colab tests)
+
+def __getattr__(name):
+    if name in ("AnomalyTrainer", "AnomalyTrainingConfig"):
+        from .training import AnomalyTrainer, AnomalyTrainingConfig
+        return locals()[name]
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+
 
 __all__ = [
     "AnomalyPairTransform",
@@ -43,13 +58,19 @@ __all__ = [
     "PAIR_INPUT_CHANNELS",
     "SyntheticNormalTransform",
     "ThresholdCalibration",
+    "annotation_mask",
     "apply_threshold",
     "anomaly_collate_fn",
     "build_pair_difference_input",
     "calibrate_validation_threshold",
+    "evaluate_known_defect_batches",
     "image_anomaly_scores",
+    "known_defect_metrics",
+    "localization_metrics",
+    "per_class_known_defect_metrics",
     "reconstruction_error_map",
     "score_labeled_batch",
     "score_model_inputs",
     "score_pair_inputs",
+    "score_statistics",
 ]
