@@ -17,12 +17,18 @@ from domains.pcb.anomaly import (
     SyntheticNormalTransform,
     apply_threshold,
     anomaly_collate_fn,
+    annotation_mask,
     build_pair_difference_input,
     calibrate_validation_threshold,
+    evaluate_known_defect_batches,
+    known_defect_metrics,
+    localization_metrics,
+    per_class_known_defect_metrics,
     reconstruction_error_map,
     score_model_inputs,
     score_labeled_batch,
     score_pair_inputs,
+    score_statistics,
 )
 
 
@@ -240,3 +246,47 @@ def test_labeled_batch_keeps_known_annotations_separate_from_scores():
     assert result["pair_ids"] == ["pair-1"]
     assert result["annotations"] == batch["annotations"]
     assert result["image_scores"].shape == (1,)
+
+
+def test_known_defect_metrics_keep_fixed_threshold_and_box_localization():
+    annotations = [[{"class_id": 0, "x_center": 0.5, "y_center": 0.5, "width": 0.25, "height": 0.25}], []]
+    scores = torch.tensor([0.5, 0.1])
+    error_maps = torch.zeros(2, 8, 8)
+    error_maps[0, 3, 3] = 1.0
+
+    mask = annotation_mask(annotations[0], 8, 8)
+    metrics = known_defect_metrics(scores, annotations, threshold=0.3)
+    localization = localization_metrics(error_maps, annotations)
+    per_class = per_class_known_defect_metrics(
+        scores, error_maps, annotations, threshold=0.3, class_names={0: "open_circuit"}
+    )
+
+    assert mask.shape == (8, 8) and mask[3, 3]
+    assert metrics["true_positive"] == 1
+    assert metrics["true_negative"] == 1
+    assert metrics["known_defect_evaluation_only"] is True
+    assert localization["top1_peak_hit_rate"] == pytest.approx(1.0)
+    assert per_class["open_circuit"]["flagged_rate"] == pytest.approx(1.0)
+    assert score_statistics(scores)["count"] == 2.0
+
+
+def test_evaluate_known_defect_batches_returns_scores_maps_and_threshold_predictions():
+    pair_inputs = torch.zeros(2, 9, 8, 8)
+    pair_inputs[0, :3] = 1.0
+    batch = {
+        "pair_inputs": pair_inputs,
+        "pair_ids": ["test-1", "test-2"],
+        "annotations": [
+            [{"class_id": 0, "x_center": 0.5, "y_center": 0.5, "width": 0.25, "height": 0.25}],
+            [],
+        ],
+    }
+
+    result = evaluate_known_defect_batches(
+        _ZeroReconstruction(), [batch], threshold=0.5, device=torch.device("cpu")
+    )
+
+    assert result["pair_ids"] == ["test-1", "test-2"]
+    assert result["image_scores"].shape == (2,)
+    assert result["error_maps"].shape == (2, 8, 8)
+    assert torch.equal(result["predictions"], torch.tensor([True, False]))
