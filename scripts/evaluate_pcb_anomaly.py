@@ -7,10 +7,9 @@ from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
 
-from domains.pcb.anomaly import (
-    AnomalyPairTransform,
-    ConvAutoencoder,
-    build_pair_difference_input,
+from domains.pcb.anomaly.dataset import AnomalyPairTransform
+from domains.pcb.anomaly.model import ConvAutoencoder, build_pair_difference_input
+from domains.pcb.anomaly.evaluation import (
     evaluate_known_defect_batches,
     per_class_known_defect_metrics,
     score_statistics,
