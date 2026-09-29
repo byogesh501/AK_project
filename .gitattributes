@@ -16,3 +16,6 @@
 *.jpg binary
 *.jpeg binary
 *.png binary
+
+# DeepPCB images are stored through Git LFS.
+data/raw/**/*.jpg filter=lfs diff=lfs merge=lfs -text
