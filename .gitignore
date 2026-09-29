@@ -27,6 +27,12 @@ data/raw/
 # Logs
 logs/*.log
 
+# Generated demo outputs
+outputs/
+
+# Local Codex configuration
+.codex/
+
 # IDE
 .vscode/
 .idea/
